@@ -7,6 +7,8 @@ import Bcrypt from "../services/bcrypt";
 import Costumer from "../entities/Costumers";
 import Debt from "../entities/Debt";
 import { timestampFromNow } from "./time";
+import { CostumerModel, DebtModel, UserModel } from "../mongoose/mongodb";
+import { UpdateOrCreate } from "../mongoose/utils";
 
 const prisma = new PrismaClient();
 
@@ -48,53 +50,50 @@ async function main() {
   ];
 
   for (const user of users) {
-    await prisma.users.create({
-      data: {
-        id: user.id,
-        email: user.email,
-        hash_password: user.hash_password,
-        acess_token: user.acess_token,
-        permission: user.permission,
-      },
-    });
+    const newUserData = {
+      id: user.id,
+      email: user.email,
+      hash_password: user.hash_password,
+      acess_token: user.acess_token,
+      permission: user.permission,
+    };
+    await UpdateOrCreate(UserModel, { email: user.email }, newUserData);
   }
   for (const costumer of costumers) {
-    await prisma.costumers.create({
-      data: {
-        debt_ids: costumer.debt_ids,
-        costumer_id: costumer.costumer_id,
-        email: costumer.email,
-        name: costumer.name,
-        phone: costumer.phone,
-        last_name: costumer.last_name,
-        adress: costumer.adress,
-        cep: costumer.cep,
-      },
-    });
+    const newCostumerData = {
+      debt_ids: costumer.debt_ids,
+      costumer_id: costumer.costumer_id,
+      email: costumer.email,
+      name: costumer.name,
+      phone: costumer.phone,
+      last_name: costumer.last_name,
+      adress: costumer.adress,
+      cep: costumer.cep,
+    };
+    await UpdateOrCreate(
+      CostumerModel,
+      { email: costumer.email },
+      newCostumerData,
+    );
   }
 
   for (const debt of debts) {
-    await prisma.debts.create({
-      data: {
-        debt_id: debt.debt_id,
-        costumer_id: debt.costumer_id,
-        due_dates: debt.due_dates,
-        fee: debt.fee,
-        value: debt.value,
-        payed: debt.payed,
-        initial_date: debt.initial_date,
-        initial_value: debt.initial_value,
-        payment_method: debt.payment_method,
-      },
-    });
+    const newDebtData = {
+      debt_id: debt.debt_id,
+      costumer_id: debt.costumer_id,
+      due_dates: debt.due_dates,
+      fee: debt.fee,
+      value: debt.value,
+      payed: debt.payed,
+      initial_date: debt.initial_date,
+      initial_value: debt.initial_value,
+      payment_method: debt.payment_method,
+    };
+    await UpdateOrCreate(DebtModel, { debt_id: debt.debt_id }, newDebtData);
   }
 }
 
-main()
-  .catch(e => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch(e => {
+  console.error(e);
+  process.exit(1);
+});

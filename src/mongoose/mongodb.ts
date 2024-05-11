@@ -1,0 +1,54 @@
+import dotenv from "dotenv";
+import mongoose, { Schema, connect, model } from "mongoose";
+import User from "../entities/User";
+import Debt from "../entities/Debt";
+import Costumer from "../entities/Costumers";
+
+export const userSchema = new Schema<User>({
+  id: String,
+  email: String,
+  hash_password: String,
+  acess_token: String,
+  permission: Number,
+  createdAt: Date,
+  updatedAt: Date,
+});
+export const debtSchema = new Schema<Debt>({
+  costumer_id: String,
+  debt_id: String,
+  value: Number,
+  initial_value: Number,
+  payment_method: String,
+  fee: Number,
+  initial_date: Date,
+  due_dates: [Date],
+  payed: Number,
+});
+
+export const costumerSchema = new Schema<Costumer>({
+  costumer_id: String,
+  email: String,
+  phone: String,
+  name: String,
+  last_name: String,
+  cep: String,
+  adress: String,
+  createdAt: Date,
+  updatedAt: Date,
+});
+
+export const UserModel = model<User>("Users", userSchema);
+export const DebtModel = model<Debt>("Debts", debtSchema);
+export const CostumerModel = model<Costumer>("Costumers", costumerSchema);
+
+dotenv.config();
+run().catch(err => console.log(err));
+
+async function run() {
+  const mongoUrl: string | undefined = process.env.MONGO_DB;
+  if (!mongoUrl) {
+    return console.error("Missing mongo url env!");
+  }
+  await connect(mongoUrl as string);
+  console.log("mongo connection:", mongoose.connection.readyState);
+}

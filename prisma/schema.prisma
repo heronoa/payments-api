@@ -17,7 +17,7 @@ model Users {
 
 model Costumers {
   costumer_id String   @id @default(uuid())
-  debt_ids    String[] @unique
+  debt_ids    String[]
   name        String   @db.VarChar(55)
   phone       String   @unique @db.VarChar(15)
   email       String   @unique @db.VarChar(255)

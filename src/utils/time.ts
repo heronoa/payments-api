@@ -42,7 +42,7 @@ export const timestampFromNow = ({
   currentDate.setFullYear(futureYear);
 
   // Convert the future date to a Unix timestamp (in milliseconds)
-  const futureTimestamp = currentDate.getTime() / 1000;
+  const futureTimestamp = currentDate.getTime();
 
   return futureTimestamp;
 };
