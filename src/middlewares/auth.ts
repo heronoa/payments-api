@@ -12,15 +12,19 @@ export const authMiddleware = async (
   if (typeof bearerHeader === "string") {
     const bearer = bearerHeader.split(" ");
     const token = bearer[1];
-    const user = await UserModel.find({
-      acess_token: token,
-    });
-
-    console.log({ user });
+    const user = (
+      await UserModel.find({
+        acess_token: token,
+      })
+    )?.[0];
 
     if (user) {
       // console.log("user:", user);
-      req = { ...req, user: { email: user?.[0].email, uid: user?.[0].id } };
+      req.user = {
+        email: user.email,
+        uid: user.id,
+        permission: user.permission,
+      };
       return next();
     } else {
       const statusCode = 401;

@@ -3,14 +3,15 @@ import { Request, Response } from "express";
 import { prisma } from "../../../../prisma/prismaClient";
 import Costumer from "../../../entities/Costumers";
 import { randomUUID } from "crypto";
-import { CostumerModel } from "../../../mongoose/mongodb";
+import { CostumerModel, DebtModel } from "../../../mongoose/mongodb";
 import { UpdateOrCreate } from "../../../mongoose/utils";
 
 export class CostumersController {
   // TODO: adicionar queries para filtrar cliente sem dividas, dividas ativas e dividas fora do prazo
 
   static async getAllCostumers(req: Request, res: Response) {
-    const result = await CostumerModel.find({});
+    const query = req?.query || {};
+    const result = await CostumerModel.find({ ...query });
 
     if (result) {
       res.status(200).json({ result });
@@ -31,26 +32,42 @@ export class CostumersController {
   }
 
   static async addCostumer(req: Request, res: Response) {
-    const { debt_ids, email, name, last_name, phone, adress, cep } = req.body;
+    const {
+      debts_ids,
+      email,
+      name,
+      last_name,
+      phone,
+      adress,
+      cep,
+      rg,
+      cpf,
+      details,
+    } = req.body;
 
     const costumer_id = randomUUID();
 
     const newCostumerData = new Costumer(
       costumer_id,
-      debt_ids,
+      debts_ids,
       name,
       last_name,
       phone,
       email,
       adress,
       cep,
+      rg,
+      cpf,
+      details,
     );
 
     const dbres = await UpdateOrCreate(
-      Costumer,
+      CostumerModel,
       { costumer_id: newCostumerData.costumer_id },
       newCostumerData,
     );
+
+    console.log({ dbres });
 
     if (dbres.result) {
       res.status(200).json({
@@ -106,18 +123,19 @@ export class CostumersController {
 
     const { costumer_id } = req.body;
 
-    const result = await CostumerModel.findOneAndDelete({ costumer_id });
+    const costumerResult = await CostumerModel.findOneAndDelete({
+      costumer_id,
+    });
+    const debtsResult = await DebtModel.deleteMany({ costumer_id });
 
-    if (result) {
+    if (costumerResult && debtsResult) {
       res.status(200).json({
         message: "Costumer Removed Sucessfully",
       });
     } else {
-      res.status(500).json({ error: "Internal Server Error" });
+      res
+        .status(500)
+        .json({ error: "Internal Server Error", costumerResult, debtsResult });
     }
-  }
-
-  static async ping(req: Request, res: Response) {
-    res.status(200).json({ res: "pong" });
   }
 }

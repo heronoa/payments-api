@@ -27,7 +27,6 @@ export class AuthController {
         password,
         hash_pass,
         (err: any, result: boolean) => {
-          console.log({ err, result });
           if (err) {
             return res.status(500).json({ error: err });
           } else if (result) {

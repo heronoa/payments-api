@@ -15,6 +15,9 @@ export default class Debt {
     readonly initial_date: Date,
     readonly due_dates: Date[],
     readonly payed: number,
+    readonly late_fee: number,
+    readonly callings: number,
+    readonly description?: string,
 
     createdAt?: Date,
     updatedAt?: Date,

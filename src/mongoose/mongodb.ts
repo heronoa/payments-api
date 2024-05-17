@@ -23,6 +23,9 @@ export const debtSchema = new Schema<Debt>({
   initial_date: Date,
   due_dates: [Date],
   payed: Number,
+  late_fee: Number,
+  callings: Number,
+  description: String,
 });
 
 export const costumerSchema = new Schema<Costumer>({
@@ -33,6 +36,10 @@ export const costumerSchema = new Schema<Costumer>({
   last_name: String,
   cep: String,
   adress: String,
+  debts_ids: [String],
+  cpf: String,
+  rg: String,
+  details: String,
   createdAt: Date,
   updatedAt: Date,
 });

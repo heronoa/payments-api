@@ -5,11 +5,18 @@ import Debt from "../../../entities/Debt";
 import { randomUUID } from "crypto";
 import { CostumerModel, DebtModel } from "../../../mongoose/mongodb";
 import { UpdateOrCreate } from "../../../mongoose/utils";
+import {
+  mailToLateDebts,
+  sendEmail,
+  sendWppMsg,
+} from "../../../utils/messager";
+import { updateDebtValueByLateFee } from "../../../utils/debtDbCalcs";
 
 export class DebtsController {
   // TODO: adicionar queries para filtrar dividas ativas e dividas fora do prazo
   static async getAllDebts(req: Request, res: Response) {
-    const result = await DebtModel.find({});
+    const query = req.query || {};
+    const result = await DebtModel.find({ ...query });
 
     if (result) {
       res.status(200).json({ result });
@@ -20,7 +27,6 @@ export class DebtsController {
   static async getSingleDebt(req: Request, res: Response) {
     const params = req.params.id as string;
     const query = req.query || {};
-    console.log({ params, query });
     const result = await DebtModel.find({
       debt_id: params,
       ...query,
@@ -43,15 +49,18 @@ export class DebtsController {
       initial_value,
       payment_method,
       initial_date,
+      late_fee,
+      description,
     } = req.body;
 
     const olderDebtIds = (
       await CostumerModel.find({
-        where: { costumer_id: costumer_id },
+        costumer_id: costumer_id,
       })
-    )[0]?.debt_ids;
+    )[0]?.debts_ids;
+
     if (!Array.isArray(olderDebtIds)) {
-      return res.status(500).json({ error: "DB Find Costumer Error" });
+      return res.status(500).json({ error: "DB Find Debt Error" });
     }
 
     const debt_id = randomUUID();
@@ -66,6 +75,9 @@ export class DebtsController {
       initial_date,
       due_dates,
       payed,
+      late_fee,
+      0,
+      description,
     );
 
     const result = await UpdateOrCreate(
@@ -78,7 +90,7 @@ export class DebtsController {
       const updateResult = await UpdateOrCreate(
         CostumerModel,
         { costumer_id: costumer_id },
-        { debt_ids: [...olderDebtIds, debt_id] },
+        { debts_ids: [...olderDebtIds, debt_id] },
       );
 
       if (updateResult.result) {
@@ -123,6 +135,48 @@ export class DebtsController {
     }
   }
 
+  // static async updateCalcDebt(req: Request, res: Response) {
+  //   try {
+  //     const result = await updateDebtValueByLateFee();
+  //     res.status(200).json({ result: true, msg: result });
+  //   } catch (err) {
+  //     res.status(500).json({ result: true, msg: err });
+  //   }
+  // }
+
+  static async sendLateMessages(req: Request, res: Response) {
+    const allDebts = await DebtModel.find();
+    const lateDebts = allDebts.filter(debt => {
+      const currentDueDate = debt.due_dates[debt.callings];
+      if (!currentDueDate) {
+        res
+          .status(500)
+          .json({ result: false, msg: "Chegou na ultima data programada" });
+      }
+      if (currentDueDate.getTime() < Date.now()) return true;
+    });
+
+    try {
+      const lateFeeResult = await updateDebtValueByLateFee(lateDebts);
+      res.status(200).json({ result: lateFeeResult });
+    } catch (err) {
+      console.log({ err });
+      res.status(500).json({ err });
+    }
+
+    // if (lateFeeResult?.result && lateDebts)
+    //   mailToLateDebts(lateDebts)
+    //     .then(result => {
+    //       console.log("Linhas encontradas:", result);
+
+    //       res.status(200).json({ result });
+    //     })
+    //     .catch(error => {
+    //       console.error("Erro:", error);
+    //       res.status(500).json({ error });
+    //     });
+  }
+
   static async removeDebt(req: Request, res: Response) {
     if (!req?.body?.debt_id) {
       return res.status(422).json({ error: "Missing Parameter debt_id" });
@@ -130,14 +184,43 @@ export class DebtsController {
 
     const { debt_id } = req.body;
 
-    const result = await DebtModel.findOneAndDelete({ debt_id });
+    const result = (await DebtModel.find({ debt_id }))[0];
+    const costumerResult = (
+      await CostumerModel.find({
+        costumer_id: result.costumer_id,
+      })
+    )[0];
 
-    if (result) {
+    const newCostumerData = JSON.parse(JSON.stringify(costumerResult));
+
+    const newDebtsArray: string[] = newCostumerData.debts_ids;
+    newDebtsArray.splice(newDebtsArray.indexOf(result.debt_id), 1);
+
+    newCostumerData.debts_ids = newDebtsArray;
+
+    console.log({ newCostumerData, costumerResult });
+
+    const updateResult = await UpdateOrCreate(
+      CostumerModel,
+      { costumer_id: newCostumerData.costumer_id },
+      newCostumerData,
+    );
+
+    const deleteResult = await DebtModel.deleteOne({ debt_id });
+
+    if (result && costumerResult && updateResult && deleteResult) {
       res.status(200).json({
         message: "Debt Removed Sucessfully",
       });
     } else {
-      res.status(500).json({ error: "Internal Server Error" });
+      console.log({ updateResult, costumerResult, deleteResult });
+      res.status(500).json({
+        error: "Internal Server Error",
+        result,
+        updateResult,
+        costumerResult,
+        deleteResult,
+      });
     }
   }
 }
