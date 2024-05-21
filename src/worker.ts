@@ -7,7 +7,7 @@ import { UpdateOrCreate } from "./mongoose/utils";
 import { mailToLateDebts } from "./utils/messager";
 import { updateDebtValueByLateFee } from "./utils/debtDbCalcs";
 
-const DAILY_CRON_SCHEDULE = "0 0 * * *"; // A cada dia
+const DAILY_CRON_SCHEDULE = "0 0 9 * * *"; // Todo dia as (9:00)
 const FIVE_SECONDS_CRON_SCHEDULE = "*/5 * * * * *"; // A cada 5 segundos
 const MINUTE_CRON_SCHEDULE = "*/60 * * * * *"; // A cada 60 segundos
 const HOURLY_CRON_SCHEDULE = "0 * * * *"; // A cada hora

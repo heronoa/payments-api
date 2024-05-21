@@ -9,7 +9,7 @@
     "test:watch": "jest --watch",
     "seed": "tsnd --transpile-only --ignore-watch node_modules src/utils/seed.ts",
     "dev": "tsnd --exit-child --respawn --transpile-only --ignore-watch node_modules src/index.ts",
-    "build": "npx prisma migrate deploy && rimraf dist && tsc --declaration",
+    "build": "rimraf dist && tsc --declaration",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "lint": "eslint --ext js,ts .",
