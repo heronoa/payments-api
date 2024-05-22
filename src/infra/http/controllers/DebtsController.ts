@@ -153,7 +153,8 @@ export class DebtsController {
           .status(500)
           .json({ result: false, msg: "Chegou na ultima data programada" });
       }
-      if (currentDueDate.getTime() < Date.now()) return true;
+      if (currentDueDate.getTime() < Date.now() && debt.value > debt.payed)
+        return true;
     });
 
     try {

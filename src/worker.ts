@@ -19,12 +19,11 @@ async function main() {
       const lateDebts = allDebts.filter(debt => {
         const currentDueDate = debt.due_dates[debt.callings];
 
-        if (currentDueDate.getTime() < Date.now()) return true;
+        if (currentDueDate.getTime() < Date.now() && debt.value > debt.payed)
+          return true;
       });
 
       await updateDebtValueByLateFee(lateDebts);
-
-      
     });
   } catch (error) {
     console.error("An error occurred:", error);

@@ -57,14 +57,11 @@ export async function updateDebtValueByLateFee(debts: Debt[]): Promise<{
     for (const debt of debts) {
       const newDoc = JSON.parse(JSON.stringify(debt));
       const currentDueDate = new Date(newDoc.due_dates[newDoc.callings]);
-      console.log({ currentDueDate, newDoc });
       const numeroDias = getDaysLate(currentDueDate, hoje);
-      const feeFactor = newDoc.initial_value * newDoc.fee; // getFeeFactor(newDoc, hoje);
+      const feeFactor = Math.pow(1 + newDoc.fee, newDoc.callings + 1); // getFeeFactor(newDoc, hoje);
       const lateFactor = newDoc.late_fee * numeroDias;
-      console.log({ lateFactor });
 
-      const novoValor = newDoc.initial_value + feeFactor + lateFactor;
-      console.log({ lateFactor });
+      const novoValor = newDoc.initial_value * feeFactor + lateFactor;
 
       if (novoValor !== newDoc.value) {
         newDoc.value = novoValor;
