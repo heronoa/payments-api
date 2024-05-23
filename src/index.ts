@@ -5,6 +5,7 @@ import express from "express";
 
 import router from "./infra/http/routes";
 import { errorMiddleware } from "./middlewares/error";
+import { cronJobs } from "./worker";
 const app = express();
 dotenv.config();
 
@@ -50,4 +51,4 @@ app.listen(PORT, () => {
   );
 });
 
-// cronJobs();
+cronJobs();
