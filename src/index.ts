@@ -5,7 +5,6 @@ import express from "express";
 
 import router from "./infra/http/routes";
 import { errorMiddleware } from "./middlewares/error";
-import { allowedOrigins } from "./utils/constants";
 const app = express();
 dotenv.config();
 
@@ -50,3 +49,5 @@ app.listen(PORT, () => {
     `Server listening on port ${PORT}. Access it at http://localhost:${PORT}`,
   );
 });
+
+// cronJobs();

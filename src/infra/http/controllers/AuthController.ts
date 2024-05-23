@@ -34,6 +34,7 @@ export class AuthController {
               token,
               email: storedUser.email,
               uid: storedUser.id,
+              permission: storedUser.permission,
             });
           } else {
             return res

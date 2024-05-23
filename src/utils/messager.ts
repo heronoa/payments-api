@@ -76,7 +76,7 @@ export async function mailToLateDebts(lateDebts: Debt[], type = "late") {
               value: debt.value,
               date: debt.due_dates[debt.callings],
               description: debt.description,
-              name: costumerInDebt.name,
+              name: costumerInDebt.last_name,
             }) || undefined,
           );
 
@@ -105,23 +105,16 @@ const emailExample: {
     [key: string]: string | number | Date | undefined;
   }) => string;
 } = {
-  late: ({
-    value,
-    date,
-    description,
-    name,
-  }) => ` <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <h2 style="color: #333333;">Notificação de Dívida a Vencer</h2>
-  <p>Prezado(a) ${name},</p>
-  <p>Esperamos que este e-mail o encontre bem. Estamos escrevendo para lembrá-lo(a) de que sua dívida conosco está prestes a vencer.</p>
-  <p>Detalhes da dívida:</p>
-  <ul>
-    <li><strong>Valor:</strong> ${value}</li>
-    <li><strong>Data de Vencimento:</strong> ${date}</li>
-    <li><strong>Descrição da Dívida:</strong> ${description}</li>
-  </ul>
-  <p>Por favor, tome as medidas necessárias para garantir que o pagamento seja feito até a data de vencimento mencionada acima. Se você já efetuou o pagamento, por favor, desconsidere esta mensagem.</p>
-  <p>Se precisar de mais informações ou se tiver alguma dúvida, não hesite em nos contatar. Estamos aqui para ajudar.</p>
-  <p>Atenciosamente,<br>[Seu Nome ou o Nome da Empresa]</p>
-</div>`,
+  late: ({ value, date, description, name }) => `Prezado(a) Sr. ${name}
+  Esperamos que este e-mail o encontre bem. Estamos escrevendo para lembrá-lo(a) de que sua dívida conosco venceu.
+  Detalhes da dívida:
+  
+    Novo Valor: R$${Number(value).toFixed(2)}
+    Data de Vencimento: ${String(date).split("T")[0].split("-").join("/")}
+    Descrição da Dívida: ${description}
+  
+  Por favor, tome as medidas necessárias para garantir que o pagamento seja feito até a data de vencimento mencionada acima. Se você já efetuou o pagamento, por favor, desconsidere esta mensagem.
+  Se precisar de mais informações ou se tiver alguma dúvida, não hesite em nos contatar. Estamos aqui para ajudar.
+  Atenciosamente, Heron Amaral
+`,
 };

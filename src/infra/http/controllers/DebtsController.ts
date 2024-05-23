@@ -147,13 +147,13 @@ export class DebtsController {
   static async sendLateMessages(req: Request, res: Response) {
     const allDebts = await DebtModel.find();
     const lateDebts = allDebts.filter(debt => {
-      const currentDueDate = debt.due_dates[debt.callings];
+      const currentDueDate =
+        debt.due_dates?.[debt.callings] ||
+        debt.due_dates[debt.due_dates.length - 1];
       if (!currentDueDate) {
-        res
-          .status(500)
-          .json({ result: false, msg: "Chegou na ultima data programada" });
+        console.log({ result: false, msg: "Chegou na ultima data programada" });
       }
-      if (currentDueDate.getTime() < Date.now() && debt.value > debt.payed)
+      if (currentDueDate?.getTime() < Date.now() && debt.value > debt.payed)
         return true;
     });
 

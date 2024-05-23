@@ -1,6 +1,7 @@
 import axios from "axios";
 
 export const timestampFromNow = ({
+  initial_date = undefined,
   seconds = 0,
   minutes = 0,
   hours = 0,
@@ -16,8 +17,10 @@ export const timestampFromNow = ({
   weeks?: number;
   months?: number;
   years?: number;
+  initial_date?: Date
+
 }) => {
-  const currentDate = new Date();
+  const currentDate =  initial_date ? new Date(initial_date) : new Date();
 
   currentDate.setDate(currentDate.getDate() + (days + weeks * 7));
   currentDate.setHours(currentDate.getHours() + hours);
