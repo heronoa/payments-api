@@ -5,7 +5,7 @@ import Costumer from "../../../entities/Costumers";
 import { randomUUID } from "crypto";
 import { CostumerModel, DebtModel } from "../../../mongoose/mongodb";
 import { UpdateOrCreate } from "../../../mongoose/utils";
-import { uploadAWS } from "../../../services/aws";
+import { deleteFromAWS, uploadAWS } from "../../../services/aws";
 
 export class CostumersController {
   // TODO: adicionar queries para filtrar cliente sem dividas, dividas ativas e dividas fora do prazo
@@ -191,9 +191,24 @@ export class CostumersController {
     const costumerResult = await CostumerModel.findOneAndDelete({
       costumer_id,
     });
-    const debtsResult = await DebtModel.deleteMany({ costumer_id });
+    const debtsResult = await DebtModel.find({ costumer_id });
+    const imagesToDelete: any[] = debtsResult
+      .map(e => e.doc)
+      .filter(e => Boolean(e));
+    let imagesDeletionResult: any = [true];
 
-    if (costumerResult && debtsResult) {
+    if (imagesToDelete.length > 0) {
+      imagesDeletionResult = imagesToDelete.map(async (e: string) => {
+        const res = await deleteFromAWS(e);
+        return Boolean(res) as boolean;
+      });
+    }
+
+    const deletionResult = imagesDeletionResult.some((e: any) => !e);
+
+    console.log({ imagesToDelete, imagesDeletionResult, deletionResult });
+
+    if (costumerResult && debtsResult && deletionResult) {
       res.status(200).json({
         message: "Costumer Removed Sucessfully",
       });

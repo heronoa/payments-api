@@ -1,8 +1,10 @@
-import { S3 } from "@aws-sdk/client-s3";
+import { DeleteObjectCommandOutput, S3 } from "@aws-sdk/client-s3";
 import https from "https";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { randomUUID } from "crypto";
 import { Upload } from "@aws-sdk/lib-storage";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3"; // ES Modules import
+
 // const { Upload } = require("@aws-sdk/lib-storage");
 
 interface AWSBucketRef {
@@ -23,7 +25,7 @@ interface AWSBucketRef {
 
 const { AWS_BUCKET_REGION, BUCKET_ACESS_KEY, BUCKET_SECRET_KEY, S3_BUCKET } =
   process.env;
-console.log({ AWS_BUCKET_REGION, BUCKET_ACESS_KEY, BUCKET_SECRET_KEY });
+// console.log({ AWS_BUCKET_REGION, BUCKET_ACESS_KEY, BUCKET_SECRET_KEY });
 
 const s3_client_params = {
   // endpoint: 'https://s3.amazonaws.com', remove this as per suggestions from last section
@@ -88,40 +90,28 @@ export const uploadAWS = async (file: {
   }
 };
 
-// try {
-//   const uploadedImage: any = new Upload({
-//     client: s3,
-//     params: {
-//       ACL: "public-read",
-//       Bucket: S3_BUCKET,
-//       Key: `${Date.now().toString()}-${randomUUID}-${file.originalname}`,
-//       Body: file.buffer,
-//       ContentType: file.mimetype,
-//     },
-//     tags: [], // optional tags
-//     queueSize: 4, // optional concurrency configuration
-//     partSize: 1024 * 1024 * 5, // optional size of each part, in bytes, at least 5MB
-//     leavePartsOnError: false, // optional manually handle dropped parts
-//   })
-//     .done()
-//     .then(data => {
-//       return data;
-//       // form.emit('data', { name: "complete", value: data });
-//     })
-//     .catch(err => {
-//       // form.emit('error', err);
-//       return JSON.stringify(err);
-//     });
+const getFileFromUrlKey = (url: string) => {
+  return url.split("?")[0].split("/").pop();
+};
 
-//   console.log(uploadedImage);
-// } catch (err) {
-//   return JSON.stringify(err);
-// }
-// };
+export const deleteFromAWS = async (
+  fileUrl: string,
+): Promise<DeleteObjectCommandOutput> => {
+  const fileName = getFileFromUrlKey(fileUrl);
 
-// const parsefile = async req => {
-//   return new Promise((resolve, reject) => {
-//     let options = {
+  console.log({ fileName });
+
+  const client = s3;
+  const input = {
+    Bucket: S3_BUCKET,
+    Key: fileName,
+  };
+  const command = new DeleteObjectCommand(input);
+  const response = await client.send(command);
+
+  return response;
+};
+
 //       maxFileSize: 100 * 1024 * 1024, //100 MBs converted to bytes,
 //       allowEmptyFiles: false,
 //     };

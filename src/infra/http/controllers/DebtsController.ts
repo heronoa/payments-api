@@ -11,7 +11,7 @@ import {
   sendWppMsg,
 } from "../../../utils/messager";
 import { updateDebtValueByLateFee } from "../../../utils/debtDbCalcs";
-import { uploadAWS } from "../../../services/aws";
+import { deleteFromAWS, uploadAWS } from "../../../services/aws";
 
 export class DebtsController {
   // TODO: adicionar queries para filtrar dividas ativas e dividas fora do prazo
@@ -236,17 +236,34 @@ export class DebtsController {
 
     newCostumerData.debts_ids = newDebtsArray;
 
-    console.log({ newCostumerData, costumerResult });
-
     const updateResult = await UpdateOrCreate(
       CostumerModel,
       { costumer_id: newCostumerData.costumer_id },
       newCostumerData,
     );
 
+    const debtToDelete = await DebtModel.find({ debt_id });
+
+    const imageToDelete = debtToDelete?.[0]?.doc;
+
     const deleteResult = await DebtModel.deleteOne({ debt_id });
 
-    if (result && costumerResult && updateResult && deleteResult) {
+    let imageDeletionResult;
+
+    if (imageToDelete)
+      imageDeletionResult = imageToDelete
+        ? await deleteFromAWS(imageToDelete)
+        : true;
+
+    console.log({ imageDeletionResult, imageToDelete });
+
+    if (
+      result &&
+      costumerResult &&
+      updateResult &&
+      deleteResult &&
+      imageDeletionResult
+    ) {
       res.status(200).json({
         message: "Debt Removed Sucessfully",
       });
