@@ -59,14 +59,18 @@ export class DebtsController {
       description,
     } = JSON.parse(data);
 
-    const s3BucketRef = await uploadAWS(file);
+    let docLocation;
 
-    const docLocation = s3BucketRef?.Location;
-    if (file && !docLocation) {
-      res.status(500).json({ result: false, msg: "AWS S3 Bucket Error" });
+    if (file?.buffer) {
+      const s3BucketRef = await uploadAWS(file);
+
+      docLocation = s3BucketRef?.Location;
+      if (file && !docLocation) {
+        res.status(500).json({ result: false, msg: "AWS S3 Bucket Error" });
+      }
+
+      console.log({ s3BucketRef });
     }
-
-    console.log({ s3BucketRef });
 
     const olderDebtIds = (
       await CostumerModel.find({
@@ -140,7 +144,7 @@ export class DebtsController {
       }
     }
 
-    if (file) {
+    if (file?.buffer) {
       const s3BucketRef = await uploadAWS(file);
 
       const docLocation = s3BucketRef?.Location;

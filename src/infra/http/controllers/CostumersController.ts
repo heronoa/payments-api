@@ -5,6 +5,7 @@ import Costumer from "../../../entities/Costumers";
 import { randomUUID } from "crypto";
 import { CostumerModel, DebtModel } from "../../../mongoose/mongodb";
 import { UpdateOrCreate } from "../../../mongoose/utils";
+import { uploadAWS } from "../../../services/aws";
 
 export class CostumersController {
   // TODO: adicionar queries para filtrar cliente sem dividas, dividas ativas e dividas fora do prazo
@@ -32,6 +33,9 @@ export class CostumersController {
   }
 
   static async addCostumer(req: Request, res: Response) {
+    const files = (req as any)?.files;
+    const { data } = req.body;
+
     const {
       debts_ids,
       email,
@@ -43,9 +47,69 @@ export class CostumersController {
       rg,
       cpf,
       details,
-    } = req.body;
+    } = JSON.parse(data);
+
+    console.log({ files });
 
     const costumer_id = randomUUID();
+    let rgDocLocation, cpfDocLocation, otherDocLocation;
+
+    const awsError = [];
+
+    if (files?.rgDoc?.[0]?.buffer) {
+      const s3BucketRef = await uploadAWS(files?.rgDoc?.[0]);
+
+      rgDocLocation = await s3BucketRef?.Location;
+      if (files?.rgDoc?.[0] && !rgDocLocation) {
+        awsError.push({ result: false, msg: "AWS S3 Bucket Error - rgDoc" });
+      }
+
+      console.log({ s3BucketRef });
+    }
+    if (files?.cpfDoc?.[0]?.buffer) {
+      const s3BucketRef = await uploadAWS(files?.cpfDoc?.[0]);
+
+      cpfDocLocation = await s3BucketRef?.Location;
+      if (files?.cpfDoc?.[0] && !cpfDocLocation) {
+        awsError.push({ result: false, msg: "AWS S3 Bucket Error - cpfDoc" });
+      }
+
+      console.log({ s3BucketRef });
+    }
+    if (files?.otherDoc?.[0]?.buffer) {
+      const s3BucketRef = await uploadAWS(files?.cpfDoc?.[0]);
+
+      otherDocLocation = await s3BucketRef?.Location;
+      if (files?.otherDoc?.[0] && !otherDocLocation) {
+        awsError.push({ result: false, msg: "AWS S3 Bucket Error - OtherDoc" });
+      }
+
+      console.log({ s3BucketRef });
+    }
+
+    console.log({ awsError });
+
+    // const getLocations = (): string[] => {
+    //   return [files?.rgDoc?.[0], files?.cpfDoc?.[0], files?.otherDoc?.[0]]
+    //     .map((doc): string | null => {
+    //       if (doc?.buffer) {
+    //         const s3BucketRef = uploadAWS(doc).then(data => data) as any;
+
+    //         const docLocation: string = s3BucketRef?.Location;
+    //         if (doc && !docLocation) {
+    //           res
+    //             .status(500)
+    //             .json({ result: false, msg: "AWS S3 Bucket Error" });
+    //         }
+    //         console.log({ s3BucketRef });
+    //         if (typeof docLocation === "string") return docLocation;
+    //       }
+    //       return null;
+    //     })
+    //     .filter((e: string | null) => Boolean(e)) as string[];
+    // };
+
+    // const locationsArr = getLocations();
 
     const newCostumerData = new Costumer(
       costumer_id,
@@ -59,6 +123,9 @@ export class CostumersController {
       rg,
       cpf,
       details,
+      cpfDocLocation || undefined,
+      rgDocLocation || undefined,
+      otherDocLocation || undefined,
     );
 
     const dbres = await UpdateOrCreate(
@@ -67,9 +134,7 @@ export class CostumersController {
       newCostumerData,
     );
 
-    console.log({ dbres });
-
-    if (dbres.result) {
+    if (dbres?.result) {
       res.status(200).json({
         message: "Costumer Added Sucessfully",
         costumer_id: costumer_id,

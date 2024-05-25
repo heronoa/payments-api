@@ -192,4 +192,4 @@ export const uploadAWS = async (file: {
 //   });
 // };
 
-listBucketsForAccount();
+// listBucketsForAccount();

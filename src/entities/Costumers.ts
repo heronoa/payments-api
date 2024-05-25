@@ -17,6 +17,9 @@ export default class Costumer {
     readonly rg: string,
     readonly cpf: string,
     readonly details?: string,
+    readonly cpfDoc?: String,
+    readonly rgDoc?: String,
+    readonly otherDoc?: string,
 
     createdAt?: Date,
     updatedAt?: Date,
@@ -32,6 +35,9 @@ export default class Costumer {
     this.rg = rg;
     this.cpf = cpf;
     this.details = details;
+    this.cpfDoc = cpfDoc;
+    this.rgDoc = rgDoc;
+    this.otherDoc = otherDoc;
 
     this.createdAt = createdAt || new Date();
     this.updatedAt = updatedAt || new Date();

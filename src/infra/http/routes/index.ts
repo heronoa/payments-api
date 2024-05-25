@@ -35,7 +35,25 @@ router.post(
   DebtsController.updateDebt,
 );
 router.post("/debts/remove", authMiddleware, DebtsController.removeDebt);
-router.post("/costumers/add", authMiddleware, CostumersController.addCostumer);
+router.post(
+  "/costumers/add",
+  authMiddleware,
+  upload.fields([
+    {
+      name: "cpfDoc",
+      maxCount: 1,
+    },
+    {
+      name: "rgDoc",
+      maxCount: 1,
+    },
+    {
+      name: "otherDoc",
+      maxCount: 1,
+    },
+  ]) as any,
+  CostumersController.addCostumer,
+);
 router.post(
   "/costumers/remove",
   authMiddleware,
@@ -44,6 +62,20 @@ router.post(
 router.post(
   "/costumers/update",
   authMiddleware,
+  upload.fields([
+    {
+      name: "cpfDoc",
+      maxCount: 1,
+    },
+    {
+      name: "rgDoc",
+      maxCount: 1,
+    },
+    {
+      name: "otherDoc",
+      maxCount: 1,
+    },
+  ]) as any,
   CostumersController.updateCostumer,
 );
 router.get("/debt/getlate", authMiddleware, DebtsController.sendLateMessages);

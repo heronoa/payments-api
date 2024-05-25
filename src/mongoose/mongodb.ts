@@ -47,6 +47,9 @@ export const costumerSchema = new Schema<Costumer>({
   cpf: String,
   rg: String,
   details: String,
+  cpfDoc: String,
+  rgDoc: String,
+  otherDoc: String,
 });
 
 export const authTokensSchema = new Schema<AuthToken>({
