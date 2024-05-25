@@ -18,6 +18,7 @@ export default class Debt {
     readonly late_fee: number,
     readonly callings: number,
     readonly description?: string,
+    readonly doc?: string,
 
     createdAt?: Date,
     updatedAt?: Date,

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import multer from "multer";
 
 import { authMiddleware } from "../../../middlewares/auth";
 import { AuthController } from "../controllers/AuthController";
@@ -6,6 +7,10 @@ import { CostumersController } from "../controllers/CostumersController";
 import { DebtsController } from "../controllers/DebtsController";
 
 const router = Router();
+
+const storage = multer.memoryStorage();
+
+const upload = multer({ storage: storage });
 
 router.post("/login", AuthController.token);
 router.get("/authping", authMiddleware, AuthController.ping);
@@ -17,8 +22,18 @@ router.get(
 );
 router.get("/debts", authMiddleware, DebtsController.getAllDebts);
 router.get("/debts/:id", authMiddleware, DebtsController.getSingleDebt);
-router.post("/debts/add", authMiddleware, DebtsController.addDebt);
-router.post("/debts/update", authMiddleware, DebtsController.updateDebt);
+router.post(
+  "/debts/add",
+  authMiddleware,
+  upload.single("file") as any,
+  DebtsController.addDebt,
+);
+router.post(
+  "/debts/update",
+  authMiddleware,
+  upload.single("file") as any,
+  DebtsController.updateDebt,
+);
 router.post("/debts/remove", authMiddleware, DebtsController.removeDebt);
 router.post("/costumers/add", authMiddleware, CostumersController.addCostumer);
 router.post(

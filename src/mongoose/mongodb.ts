@@ -4,6 +4,12 @@ import User from "../entities/User";
 import Debt from "../entities/Debt";
 import Costumer from "../entities/Costumers";
 
+interface AuthToken {
+  user_id: string;
+  token: string;
+  expires_at: Date;
+}
+
 export const userSchema = new Schema<User>({
   id: String,
   email: String,
@@ -26,6 +32,7 @@ export const debtSchema = new Schema<Debt>({
   late_fee: Number,
   callings: Number,
   description: String,
+  doc: String,
 });
 
 export const costumerSchema = new Schema<Costumer>({
@@ -40,16 +47,20 @@ export const costumerSchema = new Schema<Costumer>({
   cpf: String,
   rg: String,
   details: String,
-  createdAt: Date,
-  updatedAt: Date,
+});
+
+export const authTokensSchema = new Schema<AuthToken>({
+  user_id: String,
+  token: String,
+  expires_at: Date,
 });
 
 export const UserModel = model<User>("Users", userSchema);
 export const DebtModel = model<Debt>("Debts", debtSchema);
 export const CostumerModel = model<Costumer>("Costumers", costumerSchema);
+export const authtokens = model<AuthToken>("AuthTokens", authTokensSchema);
 
 dotenv.config();
-run().catch(err => console.log(err));
 
 async function run() {
   const mongoUrl: string | undefined = process.env.MONGO_DB;
@@ -59,3 +70,5 @@ async function run() {
   await connect(mongoUrl as string);
   console.log("mongo connection:", mongoose.connection.readyState);
 }
+
+run().catch(err => console.log(err));

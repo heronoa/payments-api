@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 
 import { prisma } from "../../../../prisma/prismaClient";
 import { UserModel } from "../../../mongoose/mongodb";
+import { randomUUID } from "crypto";
 
 export class AuthController {
   static async token(req: Request, res: Response) {
@@ -50,5 +51,17 @@ export class AuthController {
 
   static async ping(req: Request, res: Response) {
     res.status(200).json({ result: "pong", user: req.user });
+  }
+
+  static async forgotPassword(req: Request, res: Response) {
+    const { email = undefined } = req.body;
+
+    if (!email) {
+      res.status(422).json({result: false, msg: "Email missing"});
+    }
+
+    const changeToken = randomUUID()
+
+    
   }
 }

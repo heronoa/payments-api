@@ -11,6 +11,7 @@ import {
   sendWppMsg,
 } from "../../../utils/messager";
 import { updateDebtValueByLateFee } from "../../../utils/debtDbCalcs";
+import { uploadAWS } from "../../../services/aws";
 
 export class DebtsController {
   // TODO: adicionar queries para filtrar dividas ativas e dividas fora do prazo
@@ -40,6 +41,11 @@ export class DebtsController {
   }
 
   static async addDebt(req: Request, res: Response) {
+    const body = req.body;
+    const str = JSON.stringify(body);
+    const file = (req as any)?.file;
+    console.log({ body, str, file });
+    const { data } = req.body;
     const {
       costumer_id,
       due_dates,
@@ -51,7 +57,16 @@ export class DebtsController {
       initial_date,
       late_fee,
       description,
-    } = req.body;
+    } = JSON.parse(data);
+
+    const s3BucketRef = await uploadAWS(file);
+
+    const docLocation = s3BucketRef?.Location;
+    if (file && !docLocation) {
+      res.status(500).json({ result: false, msg: "AWS S3 Bucket Error" });
+    }
+
+    console.log({ s3BucketRef });
 
     const olderDebtIds = (
       await CostumerModel.find({
@@ -78,6 +93,7 @@ export class DebtsController {
       late_fee,
       0,
       description,
+      docLocation,
     );
 
     const result = await UpdateOrCreate(
@@ -104,7 +120,13 @@ export class DebtsController {
     }
   }
   static async updateDebt(req: Request, res: Response) {
-    const updateObj = JSON.parse(JSON.stringify(req.body));
+    const body = req.body;
+    const str = JSON.stringify(body);
+    const file = (req as any)?.file;
+    console.log({ body, str, file });
+    const { data } = req.body;
+    const dataObj = JSON.parse(data);
+    const updateObj = JSON.parse(JSON.stringify(dataObj));
 
     for (let key in updateObj) {
       if (updateObj[key] === undefined) {
@@ -116,6 +138,17 @@ export class DebtsController {
 
         delete updateObj[key];
       }
+    }
+
+    if (file) {
+      const s3BucketRef = await uploadAWS(file);
+
+      const docLocation = s3BucketRef?.Location;
+      if (file && !docLocation) {
+        res.status(500).json({ result: false, msg: "AWS S3 Bucket Error" });
+      }
+      updateObj.doc = docLocation;
+      console.log({ s3BucketRef });
     }
 
     const result = await UpdateOrCreate(

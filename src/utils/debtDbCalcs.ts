@@ -91,7 +91,7 @@ export async function updateDebtValueByLateFee(debts: Debt[]): Promise<{
         newDoc.due_dates = novasDatas;
         // console.log({ novasDatas });
       }
-      const numeroDias = getDaysLate(currentDueDate, hoje);
+      const numeroDias = getDaysLate(dues_date[0], hoje);
       const callings = newDoc.callings + 1;
       const fee = newDoc.fee + 1;
       const feeFactor = Math.pow(fee, callings); // getFeeFactor(newDoc, hoje);
