@@ -144,6 +144,8 @@ export class DebtsController {
       }
     }
 
+    let imageDeletionResult = true;
+
     if (file?.buffer) {
       const s3BucketRef = await uploadAWS(file);
 
@@ -153,6 +155,17 @@ export class DebtsController {
       }
       updateObj.doc = docLocation;
       console.log({ s3BucketRef });
+
+      const debtToDelete = await DebtModel.find({ debt_id: updateObj.debt_id });
+
+      const imageToDelete = debtToDelete?.[0]?.doc;
+
+      if (imageToDelete)
+        imageDeletionResult = imageToDelete
+          ? Boolean(await deleteFromAWS(imageToDelete))
+          : true;
+
+      console.log({ imageDeletionResult, imageToDelete });
     }
 
     const result = await UpdateOrCreate(

@@ -188,6 +188,16 @@ export class CostumersController {
 
     const { costumer_id } = req.body;
 
+    const costumerToDelete = await CostumerModel.findOneAndDelete({
+      costumer_id,
+    });
+
+    const costumerImagesToDelete = [
+      costumerToDelete?.cpfDoc,
+      costumerToDelete?.rgDoc,
+      costumerToDelete?.otherDoc,
+    ].filter(e => Boolean(e));
+
     const costumerResult = await CostumerModel.findOneAndDelete({
       costumer_id,
     });
@@ -196,6 +206,8 @@ export class CostumersController {
       .map(e => e.doc)
       .filter(e => Boolean(e));
     let imagesDeletionResult: any = [true];
+
+    imagesToDelete.push(costumerImagesToDelete);
 
     if (imagesToDelete.length > 0) {
       imagesDeletionResult = imagesToDelete.map(async (e: string) => {
