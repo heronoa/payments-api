@@ -73,7 +73,11 @@ export async function updateDebtValueByLateFee(debts: Debt[]): Promise<{
             : new Date(newDoc?.initial_date);
 
         console.log("checking", { currentDueDate, lastDueDate, initDate });
-        const daysPeriod = getDaysLate(initDate, lastDueDate);
+        const firstDueDate =
+          len > 1
+            ? new Date(newDoc?.due_dates?.[0])
+            : new Date(newDoc?.initial_date);
+        const daysPeriod = getDaysLate(firstDueDate, lastDueDate);
         console.log({ daysPeriod });
         const nextDates = new Array(4).fill(0).map((_, i) => {
           const daysCount = (i + 1) * daysPeriod;
