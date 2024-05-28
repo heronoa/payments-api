@@ -13,6 +13,9 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 router.post("/login", AuthController.token);
+router.post("/forgotpassword", AuthController.forgotPassword);
+router.post("/updatepassword", AuthController.updatePassword);
+router.post("/validatetoken", AuthController.validateToken);
 router.get("/authping", authMiddleware, AuthController.ping);
 router.get("/costumers", authMiddleware, CostumersController.getAllCostumers);
 router.get(

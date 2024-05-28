@@ -5,9 +5,9 @@ import Debt from "../entities/Debt";
 import Costumer from "../entities/Costumers";
 
 interface AuthToken {
-  user_id: string;
+  email: string;
   token: string;
-  expires_at: Date;
+  expires_at: number;
 }
 
 export const userSchema = new Schema<User>({
@@ -53,15 +53,15 @@ export const costumerSchema = new Schema<Costumer>({
 });
 
 export const authTokensSchema = new Schema<AuthToken>({
-  user_id: String,
+  email: String,
   token: String,
-  expires_at: Date,
+  expires_at: Number,
 });
 
 export const UserModel = model<User>("Users", userSchema);
 export const DebtModel = model<Debt>("Debts", debtSchema);
 export const CostumerModel = model<Costumer>("Costumers", costumerSchema);
-export const authtokens = model<AuthToken>("AuthTokens", authTokensSchema);
+export const AuthTokensModel = model<AuthToken>("AuthTokens", authTokensSchema);
 
 dotenv.config();
 

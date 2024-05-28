@@ -91,7 +91,7 @@ export const uploadAWS = async (file: {
 };
 
 const getFileFromUrlKey = (url: string) => {
-  return url.split("?")[0].split("/").pop();
+  return url?.split("?")[0].split("/").pop();
 };
 
 export const deleteFromAWS = async (

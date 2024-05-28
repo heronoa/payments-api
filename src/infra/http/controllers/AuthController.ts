@@ -2,8 +2,11 @@ import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 
 import { prisma } from "../../../../prisma/prismaClient";
-import { UserModel } from "../../../mongoose/mongodb";
+import { AuthTokensModel, UserModel } from "../../../mongoose/mongodb";
 import { randomUUID } from "crypto";
+import { UpdateOrCreate } from "../../../mongoose/utils";
+import { timestampFromNow } from "../../../utils/time";
+import { sendEmail, sendRecoverEmail } from "../../../utils/messager";
 
 export class AuthController {
   static async token(req: Request, res: Response) {
@@ -50,18 +53,67 @@ export class AuthController {
   }
 
   static async ping(req: Request, res: Response) {
-    res.status(200).json({ result: "pong", user: req.user });
+    return res.status(200).json({ result: "pong", user: req.user });
   }
 
+  static async updatePassword(req: Request, res: Response) {
+    const { password = undefined, token = undefined } = req.body;
+
+    if (!password) {
+      return res.status(422).json({ result: false, msg: "Password missing" });
+    }
+    if (!token) {
+      return res.status(422).json({ result: false, msg: "Token missing" });
+    }
+
+    const findToken = (await AuthTokensModel.find({ token }))[0];
+
+    if (findToken.expires_at > Date.now()) {
+
+      UpdateOrCreate(UserModel, { email: findToken.email }, { password });
+      return res.status(200).json({ result: true });
+    }
+    return res
+      .status(500)
+      .json({ result: false, msg: "Internal server error" });
+  }
   static async forgotPassword(req: Request, res: Response) {
     const { email = undefined } = req.body;
 
     if (!email) {
-      res.status(422).json({result: false, msg: "Email missing"});
+      return res.status(422).json({ result: false, msg: "Email missing" });
     }
 
-    const changeToken = randomUUID()
+    const token = await bcrypt.hash(randomUUID(), 10);
+    const expires_at = timestampFromNow({ minutes: 15 });
 
-    
+    const tokenResult = await UpdateOrCreate(
+      AuthTokensModel,
+      { email },
+      { email, token, expires_at },
+    );
+
+    sendRecoverEmail(
+      email,
+      `${process.env.CLIENT_URL}/redefinepassword?token=${token}`,
+    );
+    if (tokenResult.result) {
+      return res.status(200).json({ result: true });
+    }
+    res.status(500).json({ result: false, msg: "Internal server error" });
+  }
+  static async validateToken(req: Request, res: Response) {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(422).json({ result: false, msg: "Token missing" });
+    }
+
+    const findToken = (await AuthTokensModel.find({ token }))[0];
+
+    if (findToken.expires_at > Date.now()) {
+      return res.status(200).json({ result: true });
+    }
+    res.status(500).json({ result: false, msg: "Internal server error" });
   }
 }

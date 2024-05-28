@@ -59,6 +59,36 @@ export async function sendEmail(costumer: Costumer, debt: Debt, msg?: string) {
 
   return { result, error };
 }
+export async function sendRecoverEmail(email: string, msg?: string) {
+  const from = "Heron";
+  const message = msg;
+  const to = email;
+  const smtpTransport = nodemailer.createTransport({
+    service: "Gmail",
+    host: "smtp.gmail.com",
+    auth: {
+      user: process.env.EMAIL,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+  const mailOptions = {
+    from: from,
+    to: to,
+    subject: "Recuperação de senha - Payments - Não responda",
+    text: message,
+  };
+
+  let result;
+  let error;
+  smtpTransport.sendMail(mailOptions, function (error, response) {
+    if (error) {
+      console.log(error);
+    }
+    result = response;
+  });
+
+  return { result, error };
+}
 
 export async function mailToLateDebts(lateDebts: Debt[], type = "late") {
   try {
