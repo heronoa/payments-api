@@ -53,4 +53,7 @@ app.listen(PORT, () => {
 });
 
 cronJobs();
-console.log("s3:", { s3 });
+console.log("s3:", {
+  connection: s3.config.apiVersion ? 1 : 0,
+  version: s3.config.apiVersion,
+});

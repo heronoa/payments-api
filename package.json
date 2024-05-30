@@ -8,6 +8,7 @@
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "seed": "tsnd --transpile-only --ignore-watch node_modules src/utils/seed.ts",
+    "wpp": "tsnd --transpile-only --ignore-watch node_modules src/utils/wpp.ts",
     "dev": "tsnd --exit-child --respawn --transpile-only --ignore-watch node_modules src/index.ts",
     "build": "rimraf dist && tsc --declaration",
     "format": "prettier --check .",
@@ -52,7 +53,9 @@
     "multer": "^1.4.5-lts.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.13",
-    "rimraf": "^3.0.2"
+    "rimraf": "^3.0.2",
+    "twilio": "^5.1.0",
+    "whatsapp": "^0.0.5-Alpha"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.3.0",

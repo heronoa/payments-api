@@ -196,36 +196,28 @@ export class DebtsController {
 
   static async sendLateMessages(req: Request, res: Response) {
     const allDebts = await DebtModel.find();
-    const lateDebts = allDebts.filter(debt => {
-      const currentDueDate =
-        debt.due_dates?.[debt.callings] ||
-        debt.due_dates[debt.due_dates.length - 1];
-      if (!currentDueDate) {
-        console.log({ result: false, msg: "Chegou na ultima data programada" });
-      }
-      if (currentDueDate?.getTime() < Date.now() && debt.value > debt.payed)
-        return true;
-    });
+    console.log("[sendLateMessages] start");
+
+    // const lateDebts = allDebts.filter(debt => {
+    //   const currentDueDate =
+    //     debt.due_dates?.[debt.callings] ||
+    //     debt.due_dates[debt.due_dates.length - 1];
+    //   if (!currentDueDate) {
+    //     console.log({ result: false, msg: "Chegou na ultima data programada" });
+    //   }
+    //   if (currentDueDate?.getTime() < Date.now() && debt.value > debt.payed)
+    //     return true;
+    // });
 
     try {
-      const lateFeeResult = await updateDebtValueByLateFee(lateDebts);
-      res.status(200).json({ result: lateFeeResult });
+      const lateFeeResult = await updateDebtValueByLateFee(allDebts);
+      res.status(200).json({ lateFeeResult });
     } catch (err) {
       console.log({ err });
       res.status(500).json({ err });
     }
 
-    // if (lateFeeResult?.result && lateDebts)
-    //   mailToLateDebts(lateDebts)
-    //     .then(result => {
-    //       console.log("Linhas encontradas:", result);
-
-    //       res.status(200).json({ result });
-    //     })
-    //     .catch(error => {
-    //       console.error("Erro:", error);
-    //       res.status(500).json({ error });
-    //     });
+    console.log("[sendLateMessages] end");
   }
 
   static async removeDebt(req: Request, res: Response) {

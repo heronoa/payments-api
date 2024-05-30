@@ -1,4 +1,8 @@
 import axios from "axios";
+import twilio from "twilio";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export function sendWppMsg(phone: string) {
   axios.post(
@@ -18,3 +22,19 @@ export function sendWppMsg(phone: string) {
     },
   );
 }
+
+export function sendTwilioWpp(phone: string) {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const client = twilio(accountSid, authToken);
+
+  return client.messages
+    .create({
+      from: "whatsapp:+12075158545",
+      body: "Hello, there!",
+      to: `whatsapp:+${phone}`,
+    })
+    .then((message: any) => console.log(message.sid));
+}
+
+sendTwilioWpp("5591982764478");
