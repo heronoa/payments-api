@@ -209,7 +209,8 @@ export class DebtsController {
 
     try {
       const lateFeeResult = await updateDebtValueByLateFee(lateDebts);
-      res.status(200).json({ result: lateFeeResult });
+      const resMail = await mailToLateDebts(lateDebts);
+      res.status(200).json({ result: lateFeeResult, email: resMail });
     } catch (err) {
       console.log({ err });
       res.status(500).json({ err });

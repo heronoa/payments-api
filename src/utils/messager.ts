@@ -4,6 +4,8 @@ import Costumer from "../entities/Costumers";
 import Debt from "../entities/Debt";
 import { CostumerModel, DebtModel } from "../mongoose/mongodb";
 import { UpdateOrCreate } from "../mongoose/utils";
+import { getClosestDate } from "./time";
+import { getDaysLate } from "./debtDbCalcs";
 
 export function sendWppMsg(phone: string) {
   axios.post(
@@ -37,8 +39,8 @@ export async function sendEmail(costumer: Costumer, debt: Debt, msg?: string) {
     service: "Gmail",
     host: "smtp.gmail.com",
     auth: {
-      user: "heronoadev@gmail.com",
-      pass: "pcsp gmeh ksnb kkau",
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
     },
   });
   const mailOptions = {
@@ -98,26 +100,37 @@ export async function mailToLateDebts(lateDebts: Debt[], type = "late") {
           costumer_id: debt.costumer_id,
         });
 
-        if (costumerInDebt) {
+        const checkClosestDate = getClosestDate(debt.due_dates);
+        const daysLateCheck = checkClosestDate?.data
+          ? getDaysLate(new Date(checkClosestDate?.data)) <= 1
+          : false;
+
+        if (costumerInDebt && daysLateCheck) {
           const response = await sendEmail(
             costumerInDebt,
             debt,
             emailExample?.[type]({
               value: debt.value,
-              date: debt.due_dates[debt.callings],
+              date: checkClosestDate?.data
+                ?.toISOString()
+                ?.split("T")?.[0]
+                ?.split("-")
+                .reverse()
+                .join("/"),
               description: debt.description,
               name: costumerInDebt.last_name,
             }) || undefined,
           );
 
-          if (!response?.error) {
-            const newCallings = debt.callings + 1;
-            UpdateOrCreate(
-              DebtModel,
-              { debt_id: debt.debt_id },
-              { callings: newCallings },
-            );
-          }
+          return response;
+          // if (!response?.error) {
+          //   const newCallings = debt.callings + 1;
+          //   UpdateOrCreate(
+          //     DebtModel,
+          //     { debt_id: debt.debt_id },
+          //     { callings: newCallings },
+          //   );
+          // }
         }
       } catch (err) {
         console.log({ err });

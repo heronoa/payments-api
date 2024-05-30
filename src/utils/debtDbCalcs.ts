@@ -1,8 +1,7 @@
 import Debt from "../entities/Debt";
 import { DebtModel } from "../mongoose/mongodb";
 import { UpdateOrCreate } from "../mongoose/utils";
-import { mailToLateDebts } from "./messager";
-import { dataMaisProximaHoje, timestampFromNow } from "./time";
+import { getClosestDate, timestampFromNow } from "./time";
 
 export async function atualizarValorPelaMulta(): Promise<void> {
   try {
@@ -34,7 +33,7 @@ export async function atualizarValorPelaTaxa() {
   }
 }
 
-function getDaysLate(
+export function getDaysLate(
   dataInicial: Date,
   dataFinal = new Date(Date.now()),
 ): number {
@@ -77,8 +76,6 @@ export async function updateDebtValueByLateFee(debts: Debt[]): Promise<{
             { debt_id: newDoc.debt_id },
             newDoc,
           );
-          if (newDoc.email === "heron.amaral@gmail.com")
-            await mailToLateDebts([newDoc]);
           log.push(res);
         } catch (err) {
           console.log({
@@ -169,7 +166,7 @@ const calculateNewDebt = (lateDebt: Debt): Debt => {
 const calculateNewDueDates = (lateDebt: Debt): Debt => {
   const copyDebt = JSON.parse(JSON.stringify(lateDebt));
 
-  const currentDate = dataMaisProximaHoje(copyDebt?.due_dates);
+  const currentDate = getClosestDate(copyDebt?.due_dates);
   const isLast = currentDate?.posicao === copyDebt?.due_dates?.length - 1;
 
   if (isLast) {

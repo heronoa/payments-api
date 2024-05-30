@@ -59,7 +59,7 @@ export async function getTime() {
   return time.data;
 }
 
-export function dataMaisProximaHoje(
+export function getClosestDate(
   dates: Date[],
 ): { data: Date; posicao: number } | null {
   if (dates.length === 0) {
