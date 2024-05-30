@@ -228,6 +228,27 @@ export class DebtsController {
     //       res.status(500).json({ error });
     //     });
   }
+  static async sendNotify(req: Request, res: Response) {
+    const { costumer_id = undefined } = req.body;
+
+    if (!costumer_id) {
+      return res.status(422).json({ error: "Missing Parameter debt_id" });
+    }
+
+    const allDebts = await DebtModel.find({ costumer_id });
+    const lateDebts = allDebts.filter(debt => {
+      if (debt.value > debt.payed) return true;
+    });
+
+    try {
+      const lateFeeResult = await updateDebtValueByLateFee(lateDebts);
+      const resMail = await mailToLateDebts(lateDebts);
+      return res.status(200).json({ result: lateFeeResult, email: resMail });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({ err });
+    }
+  }
 
   static async removeDebt(req: Request, res: Response) {
     if (!req?.body?.debt_id) {

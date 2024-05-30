@@ -82,5 +82,6 @@ router.post(
   CostumersController.updateCostumer,
 );
 router.get("/debt/getlate", authMiddleware, DebtsController.sendLateMessages);
+router.post("/debts/notify", authMiddleware, DebtsController.sendNotify);
 
 export default router;
