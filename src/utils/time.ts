@@ -55,7 +55,6 @@ export async function getTime() {
   const time = await axios.get(
     "http://worldtimeapi.org/api/timezone/America/Belem",
   );
-  console.log({ time });
 
   return time.data;
 }

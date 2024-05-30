@@ -36,5 +36,3 @@ export function sendTwilioWpp(phone: string) {
     })
     .then((message: any) => console.log(message.sid));
 }
-
-sendTwilioWpp("5591982764478");
