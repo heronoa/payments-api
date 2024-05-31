@@ -3,28 +3,40 @@
 import cron from "node-cron";
 import { DebtModel } from "./mongoose/mongodb";
 import { updateDebtValueByLateFee } from "./utils/debtDbCalcs";
+import { mailToLateDebts, wppToLateDebts } from "./utils/messager";
 
-const DAILY_CRON_SCHEDULE = "0 0 9 * * *"; // Todo dia as (9:00)
+const DAILY_9_CRON_SCHEDULE = "0 0 9 * * *"; // Todo dia as (9:00)
+const DAILY_7_CRON_SCHEDULE = "0 0 22 * * *"; // Todo dia as (9:00)
 
 export async function cronJobs() {
   try {
-    cron.schedule(DAILY_CRON_SCHEDULE, async () => {
+    cron.schedule(DAILY_7_CRON_SCHEDULE, async () => {
       const allDebts = await DebtModel.find();
       const lateDebts = allDebts.filter(debt => {
-        const currentDueDate =
-          debt.due_dates?.[debt.callings] ||
-          debt.due_dates[debt.due_dates.length - 1];
-        if (!currentDueDate) {
-          console.log({
-            result: false,
-            msg: "Chegou na ultima data programada",
-          });
-        }
-        if (currentDueDate?.getTime() < Date.now() && debt.value > debt.payed)
-          return true;
+        if (debt.value > debt.payed) return true;
       });
 
-      await updateDebtValueByLateFee(lateDebts);
+      try {
+        await updateDebtValueByLateFee(lateDebts);
+        // const resMail = await mailToLateDebts(lateDebts);
+        // const resWpp = await wppToLateDebts(lateDebts);
+      } catch (err) {
+        console.log({ err });
+      }
+    });
+    cron.schedule(DAILY_9_CRON_SCHEDULE, async () => {
+      const allDebts = await DebtModel.find();
+      const lateDebts = allDebts.filter(debt => {
+        if (debt.value > debt.payed) return true;
+      });
+
+      try {
+        // const lateFeeResult = await updateDebtValueByLateFee(lateDebts);
+        await mailToLateDebts(lateDebts);
+        // const resWpp = await wppToLateDebts(lateDebts);
+      } catch (err) {
+        console.log({ err });
+      }
     });
   } catch (error) {
     console.error("An error occurred:", error);

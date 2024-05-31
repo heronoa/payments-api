@@ -19,7 +19,7 @@ export async function sendWppMsg(phone: number, msg: string) {
       {
         headers: {
           Authorization:
-            "Bearer EAAUe18mh8g4BOw00wUkwkPIXKXUSJmnlICpIzvwF6t2ocjzaFTIBRZAFu5VVTRK2Lh7zDT55gq9wAC9l6kDj7aj6AvGANddgz1uvOgzrezvdO72bWBqzsgV9k6bnCvdRyAioDkDZBSfYJbtxRUTsCFVrFeYM9DunZAiljI0ADWZCtWpbbrnXduyKWjbuEWuJR9HSKGrwORQkjhjCRpwZD",
+            "Bearer " + process.env.META_TOKEN,
           "Content-Type": "application/json",
         },
       },
