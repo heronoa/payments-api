@@ -6,25 +6,26 @@ import { CostumerModel, DebtModel } from "../mongoose/mongodb";
 import { UpdateOrCreate } from "../mongoose/utils";
 import { getClosestDate } from "./time";
 import { getDaysLate } from "./debtDbCalcs";
+import { sendWppMsg } from "./wpp";
 
-export function sendWppMsg(phone: string) {
-  axios.post(
-    `https://graph.facebook.com/v19.0/270165959522512/messages`,
-    {
-      messaging_product: "whatsapp",
-      to: phone,
-      type: "template",
-      template: { name: "hello_world", language: { code: "en_US" } },
-    },
-    {
-      headers: {
-        Authorization:
-          "Bearer EAARKPZC5XFWcBO9XVFrRtogIt5rLsUODS5oX1xBmUZA6kHM9Qb3WDwVHbxDa4BfF6rOMp80XOYq2mEq65KZBZCfWcGK2VtPUZCxflKlUEKtzRNp1ME6ubdZC2l8K3bUhX4CGf1gEniS9LqraZBkk6Q2nlKvWtvAWEZArJ0AQX2k5ZCxLnzvxzEJqPqZCgIPOnyXtiAiiuoHLwCsL7v41ww98YZD",
-        "Content-Type": "application/json",
-      },
-    },
-  );
-}
+// export function sendWppMsg(phone: string) {
+//   axios.post(
+//     `https://graph.facebook.com/v19.0/270165959522512/messages`,
+//     {
+//       messaging_product: "whatsapp",
+//       to: phone,
+//       type: "template",
+//       template: { name: "hello_world", language: { code: "en_US" } },
+//     },
+//     {
+//       headers: {
+//         Authorization:
+//           "Bearer EAARKPZC5XFWcBO9XVFrRtogIt5rLsUODS5oX1xBmUZA6kHM9Qb3WDwVHbxDa4BfF6rOMp80XOYq2mEq65KZBZCfWcGK2VtPUZCxflKlUEKtzRNp1ME6ubdZC2l8K3bUhX4CGf1gEniS9LqraZBkk6Q2nlKvWtvAWEZArJ0AQX2k5ZCxLnzvxzEJqPqZCgIPOnyXtiAiiuoHLwCsL7v41ww98YZD",
+//         "Content-Type": "application/json",
+//       },
+//     },
+//   );
+// }
 
 export async function sendEmail(costumer: Costumer, debt: Debt, msg?: string) {
   const name = costumer.name;
@@ -92,6 +93,49 @@ export async function sendRecoverEmail(email: string, msg?: string) {
   return { result, error };
 }
 
+export async function wppToLateDebts(lateDebts: Debt[], type = "late") {
+  console.log("sending wpp");
+  try {
+    lateDebts.forEach(async debt => {
+      try {
+        const costumerInDebt = await CostumerModel.findOne({
+          costumer_id: debt.costumer_id,
+        });
+
+        const checkClosestDate = getClosestDate(debt.due_dates);
+        const daysLateCheck = checkClosestDate?.data
+          ? getDaysLate(new Date(checkClosestDate?.data)) <= 1
+          : false;
+
+        if (costumerInDebt && daysLateCheck) {
+          const response = await sendWppMsg(
+            parseInt(costumerInDebt?.phone),
+            emailExample?.[type]({
+              value: debt.value,
+              date: checkClosestDate?.data
+                ?.toISOString()
+                ?.split("T")?.[0]
+                ?.split("-")
+                .reverse()
+                .join("/"),
+              description: debt.description,
+              name: costumerInDebt.last_name,
+            }) || "",
+          );
+
+          console.log("wpp response", { response });
+          return response;
+        }
+      } catch (err) {
+        console.log({ err });
+      }
+    });
+    return lateDebts;
+  } catch (error) {
+    console.error("Erro ao buscar linhas:", error);
+    throw error;
+  }
+}
 export async function mailToLateDebts(lateDebts: Debt[], type = "late") {
   try {
     lateDebts.forEach(async debt => {

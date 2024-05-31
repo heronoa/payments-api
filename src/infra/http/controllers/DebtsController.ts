@@ -5,11 +5,7 @@ import Debt from "../../../entities/Debt";
 import { randomUUID } from "crypto";
 import { CostumerModel, DebtModel } from "../../../mongoose/mongodb";
 import { UpdateOrCreate } from "../../../mongoose/utils";
-import {
-  mailToLateDebts,
-  sendEmail,
-  sendWppMsg,
-} from "../../../utils/messager";
+import { mailToLateDebts, wppToLateDebts } from "../../../utils/messager";
 import { updateDebtValueByLateFee } from "../../../utils/debtDbCalcs";
 import { deleteFromAWS, uploadAWS } from "../../../services/aws";
 
@@ -243,6 +239,7 @@ export class DebtsController {
     try {
       const lateFeeResult = await updateDebtValueByLateFee(lateDebts);
       const resMail = await mailToLateDebts(lateDebts);
+      const resWpp = await wppToLateDebts(lateDebts);
       return res.status(200).json({ result: lateFeeResult, email: resMail });
     } catch (err) {
       console.log({ err });
