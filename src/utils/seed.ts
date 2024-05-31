@@ -12,15 +12,15 @@ import mongoose from "mongoose";
 async function main() {
   // mongoose.connection.collections["payments"].drop();
 
-  const hash_pass = await bcrypt.hash("123456", 10);
-  const hash_token = await bcrypt.hash("test@gmail.com@123456", 10);
+  const hash_pass = await bcrypt.hash("pagamentos@123", 10);
+  const hash_token = await bcrypt.hash("pagamentos@gmail.com@123456", 10);
   const costumer_id = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
 
   const debt_id = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb";
   const user_id = "cccccccc-cccc-cccc-cccc-ccccccccc";
 
   const users: User[] = [
-    new User(user_id, "test@gmail.com", hash_pass, hash_token, 3),
+    new User(user_id, "pagamentos350@gmail.com", hash_pass, hash_token, 3),
   ];
 
   const costumers: Costumer[] = [
