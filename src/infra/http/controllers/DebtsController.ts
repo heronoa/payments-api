@@ -280,11 +280,11 @@ export class DebtsController {
 
     const deleteResult = await DebtModel.deleteOne({ debt_id });
 
-    let imageDeletionResult;
+    let imageDeletionResult = true;
 
     if (imageToDelete)
       imageDeletionResult = imageToDelete
-        ? await deleteFromAWS(imageToDelete)
+        ? Boolean(await deleteFromAWS(imageToDelete))
         : true;
 
     console.log({ imageDeletionResult, imageToDelete });
