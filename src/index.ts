@@ -12,9 +12,11 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3333;
 
+const CORS = process.env.CORS || "*";
+
 app.use(
   cors({
-    origin: "*",
+    origin: CORS,
   }),
 );
 app.use(
