@@ -46,9 +46,11 @@ process.on("SIGTERM", () => {
 
 app.use(errorMiddleware);
 
-app.listen(PORT, () => {
+const port = 443;
+
+app.listen(port, () => {
   console.log(
-    `Server listening on port ${PORT}. Access it at http://localhost:${PORT}`,
+    `Server listening on port ${port}. Access it at http://localhost:${port}`,
   );
 });
 

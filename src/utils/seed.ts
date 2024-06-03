@@ -32,7 +32,7 @@ async function main() {
       "91912312312",
       "heronoadev@gmail.com",
       "Almirante Barroso, N 90",
-      "55555-55",
+      "5555555",
       "1234567",
       "12345678912",
       "Instagram: @costumer",
