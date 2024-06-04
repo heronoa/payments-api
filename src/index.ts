@@ -7,6 +7,7 @@ import router from "./infra/http/routes";
 import { errorMiddleware } from "./middlewares/error";
 import { cronJobs } from "./worker";
 import { s3 } from "./services/aws";
+import { createProxyMiddleware } from "http-proxy-middleware";
 const app = express();
 dotenv.config();
 
@@ -28,7 +29,15 @@ app.use(express.json());
 app.use(express.static("public"));
 app.use("/api/v1", router);
 
-app.get("/", (req, res) => {
+app.use(
+  "/",
+  createProxyMiddleware({
+    target: `http://localhost:${process.env.FRONT_PORT || "3000"}/`,
+    changeOrigin: true,
+  }),
+);
+
+app.get("/api/v1/helloworld", (req, res) => {
   const nodeVersion = process.version;
 
   const tempObj = {
